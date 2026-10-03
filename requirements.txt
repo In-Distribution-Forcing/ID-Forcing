@@ -1,0 +1,20 @@
+# Tested with torch 2.6.0 + flash-attn 2.7.4 (Self-Forcing) and torch 2.5.0 + flash-attn 2.8.3 (LongLive).
+# flash-attn: pip install flash-attn --no-build-isolation
+torch>=2.4.0
+torchvision>=0.19.0
+diffusers==0.31.0
+transformers>=4.49.0
+tokenizers>=0.20.3
+sentencepiece
+accelerate>=1.1.1
+peft==0.14.0
+omegaconf
+einops
+ftfy
+regex
+numpy==1.24.4
+opencv-python>=4.9.0.80
+imageio
+imageio-ffmpeg
+av==13.1.0
+huggingface_hub[cli]

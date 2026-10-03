@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+wan_models
+checkpoints
+outputs/
+*.mp4

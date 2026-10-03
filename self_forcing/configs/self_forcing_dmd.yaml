@@ -1,0 +1,16 @@
+# Self-Forcing (DMD), inference only: configs/default_config.yaml + configs/self_forcing_dmd.yaml of
+# the original repo, reduced to the keys inference reads. local_attn_size: 21 is the 21-frame KV
+# cache Self-Forcing already uses by default (-1 also means 21 frames); ID-Forcing never lets
+# it roll over.
+denoising_step_list:
+- 1000
+- 750
+- 500
+- 250
+warp_denoising_step: true
+num_frame_per_block: 3
+independent_first_frame: false
+context_noise: 0
+model_kwargs:
+  timestep_shift: 5.0
+  local_attn_size: 21
