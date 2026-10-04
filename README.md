@@ -28,46 +28,28 @@
 
 ## 💡 TL;DR
 
-Autoregressive (AR) video diffusion models *drift* when they generate past their training horizon:
-colors and textures shift, and motion dynamics decay. Existing methods rely on *KV conditioning*,
-selecting or modifying the cached KV entries the model reads, and assume those entries are
-in-distribution. That assumption fails beyond the horizon. A KV entry also depends on the entries
-it attended to when it was cached (its *provenance*), and every chunk is then cached under a
-provenance never seen in training. We call this the **KV-provenance problem**. **ID-Forcing** is
-a training-free, test-time framework that aligns both *KV caching* and *KV conditioning* with
-training. Its key mechanism, **self-caching**, caches chunks without attending to prior KV entries,
-which prevents out-of-distribution entries at their source and keeps the rolling window exactly
-in-distribution. Short-horizon models (Self-Forcing, LongLive) thereby extend to minute-scale
-generation and drift substantially less than prior methods.
+Beyond the training horizon, cached KV entries become out-of-distribution because of how they were
+cached (the **KV-provenance problem**), and the video drifts. **ID-Forcing** keeps both KV caching
+and KV conditioning in-distribution:
+
+- **Self-Caching**: the earliest entries of the window are cached attending only to themselves,
+  and the rest autoregressively on top of them.
+- **Exact Rolling Window**: the first chunk κ<sub>0</sub> stays as a sink next to the *L*−1 most
+  recent entries, re-rotated onto trained positions.
+- **Training-Free**: runs on the released Self-Forcing and LongLive checkpoints, unchanged.
 
 ![KV operations of Self-Forcing vs. ID-Forcing](assets/method.png)
 
 ## TABLE OF CONTENTS
-1. [Highlights](#-highlights)
-2. [Supported Base Models](#-supported-base-models)
-3. [Requirements](#-requirements)
-4. [Installation](#-installation)
-5. [Quick Start](#-quick-start)
-6. [Method Overview](#-method-overview)
-7. [Drift Metrics](#-drift-metrics)
-8. [Repository Layout](#-repository-layout)
-9. [Acknowledgements](#-acknowledgements)
-10. [Citation](#-citation)
-11. [License](#-license)
-
-## ✨ Highlights
-
-- **Self-Caching (KV caching)**: the earliest entries of the conditioning window are cached
-  attending only to themselves, and the rest autoregressively on top of them. Every KV entry is
-  therefore written under a provenance that training executed.
-- **Exact Rolling Window (KV conditioning)**: the first chunk κ<sub>0</sub> stays at slot 0 as a
-  sink, because it alone is distributionally unique. Next to it sit the *L*−1 most recent entries,
-  re-rotated so that every temporal distance matches training. The window never grows, however
-  long the video runs.
-- **Training-Free**: runs on the released Self-Forcing and LongLive checkpoints. Their weights and
-  model code are unchanged; only how KV entries are written and read changes.
-- **Drift Metrics Included**: scripts for the Color Drift and Motion Drift metrics reported in the
-  paper.
+1. [Supported Base Models](#-supported-base-models)
+2. [Requirements](#-requirements)
+3. [Installation](#-installation)
+4. [Quick Start](#-quick-start)
+5. [Drift Metrics](#-drift-metrics)
+6. [Repository Layout](#-repository-layout)
+7. [Acknowledgements](#-acknowledgements)
+8. [Citation](#-citation)
+9. [License](#-license)
 
 ## 🤖 Supported Base Models
 
@@ -171,81 +153,25 @@ python longlive/idforcing.py --prompt_file prompts/moviegenbench_128.txt --secon
 Each video is saved as `<output>/<first 100 characters of the prompt>-<seed>-0.mp4` at 16 fps.
 Videos that already exist are skipped, so you can restart an interrupted run with the same command.
 
-> [!NOTE]
-> A 2-minute video takes about 6 minutes on one A100, including VAE decoding. Noise is drawn
-> exactly as in our experiments, and run side by side with our experiment code on the same GPU,
-> the scripts compute the same videos. On the same machine and software, the Self-Forcing script
-> is bit-for-bit repeatable. LongLive's pipeline is not: its outputs vary slightly from run to run,
-> with our experiment code as well. Across different GPUs, drivers or library versions, expect
-> visually identical rather than bit-identical videos.
-
-## 🔬 Method Overview
-
-Both models generate chunks of *f* = 3 latent frames (12 video frames, 0.75 s at 16 fps) with
-4 denoising steps. A *self-cached* entry is a chunk's KV computed by a clean forward pass in which
-the chunk attends to nothing but itself. The code follows the paper's Algorithm 1. Before each
-chunk, the oldest entry other than the sink κ<sub>0</sub> is evicted, and the remaining entries are
-re-rotated by *R*<sub>−f</sub>, a rotation of the temporal RoPE of their keys. The window's
-positions therefore never grow with the video.
-
-**Self-Forcing** (*L* = 3, *ℓ* = 2). Chunks 0–6 (the 21-frame training horizon) come from
-Self-Forcing's own rollout. From chunk 7 on, chunk *n* attends to:
-
-```
-[ Sink ] + [ chunk n-2, self-cached ] + [ chunk n-1, AR on chunk n-2 ] + [ chunk n ]
- RoPE 0-2          RoPE 3-5                      RoPE 6-8                  RoPE 9-11
-```
-
-| Block | Content |
-|---|---|
-| **Sink** κ<sub>0</sub> | chunk 0's KV, as Self-Forcing cached it (chunk 0 attends to itself only) |
-| **Self-cached** | chunk *n*−2, cached attending only to itself |
-| **AR** | chunk *n*−1, re-cached autoregressively on top of chunk *n*−2's self-cached entry; rebuilt for every chunk and never stored |
-| **Current** | chunk *n*, being denoised; self-cached at frames 9–11 afterwards |
-
-**LongLive** (*L* = 3, *ℓ* = 3). LongLive is trained on minute-long videos, so ID-Forcing takes over
-from the first chunk and every entry is self-cached. Chunk 0 is LongLive's own first chunk and
-becomes the sink. Chunk 1 attends to `sink | self`, chunk 2 to `sink | chunk 1 | self`, and every
-chunk *n* ≥ 3 to:
-
-```
-[ Sink ] + [ chunk n-2, self-cached ] + [ chunk n-1, self-cached ] + [ chunk n ]
- RoPE 0-2          RoPE 3-5                     RoPE 6-8                RoPE 9-11
-```
-
 ## 📏 Drift Metrics
-
-`eval/` measures how far a long video drifts away from its opening, on any folder of `.mp4` files.
 
 | Metric | Script | What it measures | Score (higher is better) |
 |---|---|---|---|
 | **Color Drift** | `eval/color_drift.py` (CPU) | 180-bin, L1-normalised HSV-hue histograms *h*<sub>start</sub>, *h*<sub>end</sub> of the first and the last frame (Xiang et al., 2026) | 100 · (1 − ½ ‖*h*<sub>start</sub> − *h*<sub>end</sub>‖<sub>1</sub>), averaged over videos |
 | **Motion Drift** | `eval/motion_drift.py` (GPU) | VBench Dynamic Degree *d*<sub>start</sub>, *d*<sub>end</sub> ∈ {0, 1} of the first and the last 5 seconds (RAFT optical flow on frames subsampled to 8 fps) | 100 − LOST, where LOST is the % of videos with *d*<sub>start</sub> = 1 and *d*<sub>end</sub> = 0 |
 
-The Motion Drift score above is the one in the paper's tables. The script also prints the symmetric
-variant, 100 · (1 − mean |*d*<sub>start</sub> − *d*<sub>end</sub>|), which also counts videos that
-start moving only at the end.
-
-Motion Drift needs VBench's `DynamicDegree` and the RAFT weights it downloads. Install them in an
-environment of their own: VBench pins older packages, and we used Python 3.8 with torch 2.4.1.
-
 ```bash
+# Motion Drift needs VBench and its RAFT weights (separate env; we used Python 3.8, torch 2.4.1)
 pip install vbench==0.1.5 easydict opencv-python
 mkdir -p ~/.cache/vbench/raft_model
 wget -P ~/.cache/vbench/raft_model https://dl.dropboxusercontent.com/s/4j4z58wuv8o0mfz/models.zip
 unzip -d ~/.cache/vbench/raft_model ~/.cache/vbench/raft_model/models.zip   # -> models/raft-things.pth
-```
 
-Run both metrics on a folder of videos (`PYTHON` is the interpreter of that environment):
-
-```bash
+# both metrics on a folder of videos -> <folder>_color_drift.csv, <folder>_motion_drift.csv
 PYTHON=/path/to/vbench_env/bin/python bash eval/run_drift.sh outputs/self_forcing
 PYTHON=... GPUS=0,1,2,3 bash eval/run_drift.sh outputs/longlive          # Motion Drift on 4 GPUs
 PYTHON=... END=1917 bash eval/run_drift.sh outputs/sf_240s               # score 4 min clips at 2 min
 ```
-
-The per-video results go to `<folder>_color_drift.csv` and `<folder>_motion_drift.csv`, and the
-summary is printed. Each script also runs on its own; see `--help`.
 
 ## 📂 Repository Layout
 
