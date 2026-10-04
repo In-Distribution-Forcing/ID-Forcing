@@ -10,15 +10,15 @@
     ·
     <a href="">Sangwoo Jo</a><sup>2</sup>
     ·
-    <a href="">Hyunmog Kim</a><sup>3</sup><br>
+    <a href="">Hyunmog Kim</a><sup>2</sup><br>
     <a href="">Sungjoon Choi</a><sup>2†</sup>
     ·
     <a href="">Joonseok Lee</a><sup>1†</sup>
     ·
-    <a href="">Jaewoong Choi</a><sup>4†</sup>
+    <a href="">Jaewoong Choi</a><sup>3†</sup>
     ·
-    <a href="">Jaemoo Choi</a><sup>5†</sup><br>
-    <sup>1</sup>Seoul National University <sup>2</sup>Korea University <sup>3</sup>Arontier Co., Ltd. <sup>4</sup>Sungkyunkwan University <sup>5</sup>Georgia Institute of Technology<br>
+    <a href="">Jaemoo Choi</a><sup>4†</sup><br>
+        <sup>1</sup>Seoul National University <sup>2</sup>Korea University <sup>3</sup>Sungkyunkwan University <sup>4</sup>Georgia Institute of Technology<br>
     <sup>*</sup>Equal contribution · <sup>†</sup>Corresponding author
   </p>
   <h3 align="center"><a href="">Paper</a> | <a href="">Website</a></h3>
