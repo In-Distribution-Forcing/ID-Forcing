@@ -38,8 +38,6 @@ and KV conditioning in-distribution:
   recent entries, re-rotated onto trained positions.
 - **Training-Free**: runs on the released Self-Forcing and LongLive checkpoints, unchanged.
 
-![KV operations of Self-Forcing vs. ID-Forcing](assets/method.png)
-
 ## TABLE OF CONTENTS
 1. [Supported Base Models](#-supported-base-models)
 2. [Requirements](#-requirements)
