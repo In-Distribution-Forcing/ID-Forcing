@@ -1,12 +1,13 @@
-"""Color shift: how far a clip's colors move between its first and its last frame.
+"""Color Drift: how far a clip's colors move between its first and its last frame.
 
-    python eval/color_shift.py outputs/self_forcing --out outputs/self_forcing_color.csv
-    python eval/color_shift.py outputs/sf_240s --end 1917     # a 4 min clip scored as its first 2 min
+    python eval/color_drift.py outputs/self_forcing --out outputs/self_forcing_color_drift.csv
+    python eval/color_drift.py outputs/sf_240s --end 1917     # a 4 min clip scored as its first 2 min
 
 For each video, both frames are converted to HSV and the Hue channel is binned into an L1-normalised
 180-bin histogram (one bin per 8-bit OpenCV hue value). We report the L1 distance between the two
 histograms (0 = same colors, 2 = disjoint) and their Pearson correlation, and over the whole set
-ColorShift = 100 * (1 - mean L1 / 2), so higher means less color drift.
+Color Drift = 100 * (1 - mean L1 / 2), so higher means less drift (Xiang et al., 2026; App. B of
+our paper).
 
 "First" and "last" are the first and last decoded frames. With --end N the clip is treated as if
 it ended at frame N, so a long clip can be scored over its opening part without cutting files.
@@ -67,7 +68,7 @@ def score(job):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Color shift between the first and last frame")
+    ap = argparse.ArgumentParser(description="Color Drift between the first and last frame")
     ap.add_argument("videos_dir")
     ap.add_argument("--glob", default="*.mp4")
     ap.add_argument("--end", type=int, default=0,
@@ -91,7 +92,7 @@ def main():
     label = args.label or os.path.basename(os.path.normpath(args.videos_dir))
     print(f"{label}: n={len(l1s)}/{len(rows)}  L1={np.mean(l1s):.4f}  "
           f"pearson={np.mean(prs) if prs else float('nan'):.4f}  "
-          f"ColorShift={100 * (1 - np.mean(l1s) / 2):.2f}")
+          f"Color Drift={100 * (1 - np.mean(l1s) / 2):.2f}")
     if bad:
         print(f"  {len(bad)} unscoreable, e.g. {bad[:3]}")
     if args.out:

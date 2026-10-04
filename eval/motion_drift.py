@@ -1,4 +1,4 @@
-"""Motion drift: does a clip still move at its end the way it moved at its start?
+"""Motion Drift: does a clip still move at its end the way it moved at its start?
 
     CUDA_VISIBLE_DEVICES=0 python eval/motion_drift.py outputs/self_forcing --out outputs/sf_motion.csv
     python eval/motion_drift.py --merge outputs/sf_motion.csv outputs/sf_motion.csv.part0 ...
@@ -10,8 +10,14 @@ scores the mean of its top 5 % flow magnitudes. A segment counts as moving once 
 of its n frames' pairs exceed 6 * min(H, W) / 256 pixels (11.25 px at 480p).
 
 Per video we write first_move, last_move, l1 = |first_move - last_move| and the mean pair score
-of each end. Over the set we report the share of clips moving at the start and at the end,
-LOST (moving at the start, static at the end), LOST_score = 100 - LOST, and gained (the reverse).
+of each end. Over the set we report
+
+    Motion Drift = 100 - LOST, where LOST is the share (%) of clips that move at the start but
+                   are static at the end. This is the number in our paper's tables.
+    symmetric    = 100 - mean |d_start - d_end| (in %), which also counts clips that start
+                   moving only at the end (gained)
+
+together with the share of clips moving at each end.
 
 With --end N each clip is treated as if it ended at frame N, so a long clip can be measured over
 its opening part. --shard / --num_shards split the videos across processes; --merge joins the
@@ -59,8 +65,8 @@ def summarize(rows, label):
     l1 = pct([a != b for a, b in zip(first, last)])
     ff = np.mean([float(r["first_flow"]) for r in rows])
     lf = np.mean([float(r["last_flow"]) for r in rows])
-    print(f"{label}: n={len(rows)}  moving first {pct(first):.2f}  last {pct(last):.2f}  "
-          f"LOST {lost:.2f}  LOST_score {100 - lost:.2f}  gained {gained:.2f}  L1 {l1:.2f}  "
+    print(f"{label}: n={len(rows)}  Motion Drift {100 - lost:.2f}  (symmetric {100 - l1:.2f})  "
+          f"moving first {pct(first):.2f} last {pct(last):.2f}  lost {lost:.2f} gained {gained:.2f}  "
           f"flow {ff:.1f} -> {lf:.1f}")
 
 
@@ -86,7 +92,7 @@ def merge(out, parts):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Motion drift: dynamic degree of the first vs last 5 s")
+    ap = argparse.ArgumentParser(description="Motion Drift: dynamic degree of the first vs last 5 s")
     ap.add_argument("videos_dir", nargs="?")
     ap.add_argument("--seconds", type=float, default=5.0)
     ap.add_argument("--glob", default="*.mp4")

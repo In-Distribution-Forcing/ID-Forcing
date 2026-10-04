@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Both drift metrics for a folder of videos: color shift (CPU) and motion drift (GPU, VBench + RAFT).
+# Both drift metrics for a folder of videos: Color Drift (CPU) and Motion Drift (GPU, VBench + RAFT).
 #
 #   bash eval/run_drift.sh outputs/self_forcing
 #   GPUS=0,1,2,3 bash eval/run_drift.sh outputs/longlive
 #   END=1917 bash eval/run_drift.sh outputs/sf_240s        # 4 min clips scored over their first 2 min
 #
-# Writes <videos_dir>_color_shift.csv and <videos_dir>_motion_drift.csv next to the folder.
+# Writes <videos_dir>_color_drift.csv and <videos_dir>_motion_drift.csv next to the folder.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VID="${1:?usage: run_drift.sh <videos_dir>}"
@@ -16,10 +16,10 @@ END="${END:-0}"                                       # 0: whole clip
 OUT="${OUT:-$VID}"                                    # output prefix
 IFS=',' read -r -a GPU <<< "$GPUS"
 
-echo "== color shift: $VID"
-"$PYTHON" "$HERE/color_shift.py" "$VID" --end "$END" --out "${OUT}_color_shift.csv"
+echo "== Color Drift: $VID"
+"$PYTHON" "$HERE/color_drift.py" "$VID" --end "$END" --out "${OUT}_color_drift.csv"
 
-echo "== motion drift: $VID  (GPU ${GPUS})"
+echo "== Motion Drift: $VID  (GPU ${GPUS})"
 pids=(); parts=()
 for i in "${!GPU[@]}"; do
   part="${OUT}_motion_drift.csv.part$i"
