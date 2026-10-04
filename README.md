@@ -4,24 +4,24 @@
 </p>
 <p align="center">
   <p align="center">
-    <a href="">Jeongwoo Shin</a><sup>1*</sup>
+    <a href="https://swswss.github.io/">Jeongwoo Shin</a><sup>1*</sup>
     ·
-    <a href="">Youngyoon Choi</a><sup>1*</sup>
+    <a href="https://youngyoon911.github.io/">Youngyoon Choi</a><sup>1*</sup>
     ·
-    <a href="">Sangwoo Jo</a><sup>2</sup>
+    <a href="https://github.com/jasonjo97">Sangwoo Jo</a><sup>2</sup>
     ·
     <a href="">Hyunmog Kim</a><sup>2</sup><br>
-    <a href="">Sungjoon Choi</a><sup>2†</sup>
+    <a href="https://aii.korea.ac.kr/people.html">Sungjoon Choi</a><sup>2†</sup>
     ·
-    <a href="">Joonseok Lee</a><sup>1†</sup>
+    <a href="http://www.joonseok.net/home.html">Joonseok Lee</a><sup>1†</sup>
     ·
-    <a href="">Jaewoong Choi</a><sup>3†</sup>
+    <a href="https://sites.google.com/view/jaewoongchoi/home">Jaewoong Choi</a><sup>3†</sup>
     ·
-    <a href="">Jaemoo Choi</a><sup>4†</sup><br>
+    <a href="https://jaemoo-choi.github.io/">Jaemoo Choi</a><sup>4†</sup><br>
     <sup>1</sup>Seoul National University <sup>2</sup>Korea University <sup>3</sup>Sungkyunkwan University <sup>4</sup>Georgia Institute of Technology<br>
     <sup>*</sup>Equal contribution · <sup>†</sup>Corresponding author
   </p>
-  <h3 align="center"><a href="">Paper</a> | <a href="">Website</a></h3>
+  <h3 align="center"><a href="">Paper</a> | <a href="https://in-distribution-forcing.github.io/">Website</a></h3>
 </p>
 
 ---
