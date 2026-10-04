@@ -10,8 +10,7 @@
     ·
     <a href="">Sangwoo Jo</a><sup>2</sup>
     ·
-    <a href="">Hyunmog Kim</a><sup>3</sup>
-    ·
+    <a href="">Hyunmog Kim</a><sup>3</sup><br>
     <a href="">Sungjoon Choi</a><sup>2†</sup>
     ·
     <a href="">Joonseok Lee</a><sup>1†</sup>
